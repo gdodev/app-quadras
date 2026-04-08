@@ -1,3 +1,7 @@
+import 'dart:convert';
+
+import 'package:app_quadras/utils.dart';
+import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -115,7 +119,7 @@ class _CadastroUsuarioState extends State<CadastroUsuario> {
                           await supabase.from('usuario').insert({
                             'nome_completo': nomeCompletoController.text,
                             'login': loginController.text,
-                            'senha': senhaController.text,
+                            'senha': Utils.gerarMd5(senhaController.text),
                           });
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
@@ -123,6 +127,16 @@ class _CadastroUsuarioState extends State<CadastroUsuario> {
                               backgroundColor: Colors.green,
                             ),
                           );
+                          Navigator.of(context).pop();
+                        } on PostgrestException catch (e) {
+                          if (e.code != null && e.code == "23505") {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(
+                                content: Text("Login já está em uso"),
+                                backgroundColor: Colors.red,
+                              ),
+                            );
+                          }
                         } catch (e) {
                           ScaffoldMessenger.of(context).showSnackBar(
                             SnackBar(
