@@ -1,5 +1,6 @@
 import 'package:app_quadras/cadastro_usuario.dart';
 import 'package:app_quadras/principal.dart';
+import 'package:app_quadras/principal_adm.dart';
 import 'package:app_quadras/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -95,13 +96,23 @@ class _TelaLoginState extends State<TelaLogin> {
                             backgroundColor: Colors.green,
                           ),
                         );
-                        Navigator.of(context).pushReplacement(
-                          MaterialPageRoute(
-                            builder: (context) {
-                              return TelaPrincipal();
-                            },
-                          ),
-                        );
+                        if (usuarios.first["is_adm"]) {
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return TelaPrincipalAdm();
+                              },
+                            ),
+                          );
+                        } else {
+                          Navigator.of(context).pushReplacement(
+                            MaterialPageRoute(
+                              builder: (context) {
+                                return TelaPrincipal();
+                              },
+                            ),
+                          );
+                        }
                       }
                     }
                   },
