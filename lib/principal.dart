@@ -15,6 +15,7 @@ class _TelaPrincipalState extends State<TelaPrincipal> {
         title: Text("Tela principal"),
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
       ),
+      drawer: Drawer(),
     );
   }
 }
