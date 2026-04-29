@@ -46,7 +46,7 @@ class _TelaQuadrasState extends State<TelaQuadras> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("Tela Esportes"),
+        title: Text("Tela Quadras"),
       ),
       body: Center(
         child: ConstrainedBox(
