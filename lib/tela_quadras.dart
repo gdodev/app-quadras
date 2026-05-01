@@ -1,5 +1,7 @@
 import 'package:app_quadras/cadastro_esporte.dart';
+import 'package:app_quadras/cadastro_quadra.dart';
 import 'package:app_quadras/esporte.dart';
+import 'package:app_quadras/quadra.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -11,35 +13,43 @@ class TelaQuadras extends StatefulWidget {
 }
 
 class _TelaQuadrasState extends State<TelaQuadras> {
-  List<Esporte> esportes = [];
+  List<Quadra> quadras = [];
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
-    consultarEsportes();
+    consultarQuadras();
   }
 
-  void consultarEsportes() async {
+  void consultarQuadras() async {
+    quadras.clear();
     final supabase = Supabase.instance.client;
-    final esportesSupabase = await supabase
-        .from("esporte") //
-        .select();
-    print("esportes: $esportesSupabase");
-    setState(() {
-      esportes = esportesSupabase.map(
-        (e) {
-          print("id: $e");
-          print("${e["id"]}");
-          print("${e["descricao"]}");
-          print("${e["numero_jogadores"]}");
-          return Esporte(
-            descricao: e["descricao"],
-            numeroJogadores: e["numero_jogadores"],
-          );
-        },
-      ).toList();
-    });
+    var quadrasSupabase = await supabase.from("quadra").select();
+    for (var quadra in quadrasSupabase) {
+      var idsEsportesHabilitados = await supabase.from("quadra_esporte").select().eq("quadra_id", quadra["id"]);
+      // print("descrição quadra: ${quadra["descricao"]} - ids esportes habilitados: $idsEsportesHabilitados");
+      var esportesQuadra = <Esporte>[];
+      for (var esporteHabilitado in idsEsportesHabilitados) {
+        var registros = await supabase.from("esporte").select().eq("id", esporteHabilitado["esporte_id"]);
+        esportesQuadra.add(
+          Esporte(
+            id: registros.first["id"],
+            descricao: registros.first["descricao"],
+            numeroJogadores: registros.first["numero_jogadores"],
+          ),
+        );
+      }
+      setState(() {
+        quadras.add(
+          Quadra(
+            id: quadra["id"],
+            descricao: quadra["descricao"],
+            esportesHabilitados: esportesQuadra,
+          ),
+        );
+      });
+    }
   }
 
   @override
@@ -54,16 +64,26 @@ class _TelaQuadrasState extends State<TelaQuadras> {
             maxWidth: 500,
           ),
           child: ListView.builder(
-            itemCount: esportes.length,
+            itemCount: quadras.length,
             itemBuilder: (context, index) {
-              final Esporte esporteCorrente = esportes[index];
-              return Card(
-                elevation: 8.0,
-                child: ListTile(
-                  leading: Icon(Icons.sports_basketball),
-                  title: Text(esporteCorrente.descricao),
-                  subtitle: Text("Nº de jogadores: ${esporteCorrente.numeroJogadores}"),
-                  trailing: Text(index.toString()),
+              return GestureDetector(
+                onTap: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(
+                      builder: (context) {
+                        return CadastroQuadra(
+                          quadra: quadras[index],
+                        );
+                      },
+                    ),
+                  );
+                },
+                child: Card(
+                  elevation: 8,
+                  child: ListTile(
+                    title: Text(quadras[index].descricao),
+                    subtitle: Text("Esportes habilitados: ${quadras[index].esportesHabilitados.length}"),
+                  ),
                 ),
               );
             },
@@ -71,12 +91,13 @@ class _TelaQuadrasState extends State<TelaQuadras> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
+        child: Icon(Icons.add),
         onPressed: () {
           Navigator.of(context)
               .push(
                 MaterialPageRoute(
                   builder: (context) {
-                    return CadastroEsporte();
+                    return CadastroQuadra();
                   },
                 ),
               )
@@ -85,7 +106,7 @@ class _TelaQuadrasState extends State<TelaQuadras> {
                   if (value != null) {
                     print("value: $value");
                   }
-                  consultarEsportes();
+                  consultarQuadras();
                 },
               );
         },

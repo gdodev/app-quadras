@@ -35,8 +35,7 @@ class _TelaPrincipalAdmState extends State<TelaPrincipalAdm> {
                 Navigator.of(context).push(
                   MaterialPageRoute(
                     builder: (context) {
-                      // return TelaQuadras();
-                      return CadastroQuadra();
+                      return TelaQuadras();
                     },
                   ),
                 );

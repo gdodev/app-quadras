@@ -1,9 +1,12 @@
 import 'package:app_quadras/esporte.dart';
+import 'package:app_quadras/quadra.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class CadastroQuadra extends StatefulWidget {
-  const CadastroQuadra({super.key});
+  const CadastroQuadra({super.key, this.quadra});
+
+  final Quadra? quadra;
 
   @override
   State<CadastroQuadra> createState() => _CadastroQuadraState();
@@ -11,15 +14,18 @@ class CadastroQuadra extends StatefulWidget {
 
 class _CadastroQuadraState extends State<CadastroQuadra> {
   List<Esporte> esportes = [];
-  TextEditingController descricaoController = TextEditingController();
+  late TextEditingController descricaoController;
   GlobalKey<FormState> formKey = GlobalKey<FormState>();
-  // List<int> esportesHabilitados = [];
   Map<Esporte, bool> esportesHabilitados = {};
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
+    descricaoController = TextEditingController();
+    if (widget.quadra != null) {
+      descricaoController = TextEditingController(text: widget.quadra!.descricao);
+    }
     consultarEsportes();
   }
 
@@ -37,6 +43,7 @@ class _CadastroQuadraState extends State<CadastroQuadra> {
           print("${e["descricao"]}");
           print("${e["numero_jogadores"]}");
           return Esporte(
+            id: e["id"],
             descricao: e["descricao"],
             numeroJogadores: e["numero_jogadores"],
           );
@@ -48,6 +55,15 @@ class _CadastroQuadraState extends State<CadastroQuadra> {
       esportesHabilitados[esp] = false;
     }
     print("esportesHabilitados: $esportesHabilitados");
+    if (widget.quadra != null) {
+      for (var esp in esportesHabilitados.entries) {
+        print("quadra ${widget.quadra!.descricao} contém esporte ${esp.key}? ${widget.quadra!.esportesHabilitados.contains(esp.key)}");
+        if (widget.quadra!.esportesHabilitados.contains(esp.key)) {
+          esportesHabilitados[esp.key] = true;
+        }
+      }
+      setState(() {});
+    }
   }
 
   @override
@@ -97,18 +113,40 @@ class _CadastroQuadraState extends State<CadastroQuadra> {
             ElevatedButton(
               onPressed: () async {
                 if (formKey.currentState!.validate()) {
-                  final supabase = await Supabase.instance.client;
-                  supabase.from("quadra").insert({
-                    "descricao": descricaoController.text,
-                  });
-                  var registros =
-                      await supabase //
-                          .from("quadra")
-                          .select()
-                          .eq("descricao", descricaoController.text);
-                  var idQuadra = registros.first["id"];
-                  for (var esporte in esportesHabilitados.entries.where((element) => element.value)) {
-                    supabase.from("quadra_esporte").insert({"quadra_id": idQuadra, "esporte_id": esporte});
+                  try {
+                    final supabase = Supabase.instance.client;
+                    await supabase.from("quadra").insert({
+                      "descricao": descricaoController.text,
+                    });
+                    List<Map<String, dynamic>> registros =
+                        await supabase //
+                            .from("quadra")
+                            .select()
+                            .eq("descricao", descricaoController.text);
+                    var idQuadra = registros.first["id"];
+                    for (var entry in esportesHabilitados.entries) {
+                      print("${entry.key.id}, ${entry.key.descricao}, marcado: ${entry.value}");
+                    }
+                    for (var esporte in esportesHabilitados.entries.where((element) => element.value)) {
+                      await supabase.from("quadra_esporte").insert({
+                        "quadra_id": idQuadra,
+                        "esporte_id": esporte.key.id,
+                      });
+                    }
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Cadastro realizado com sucesso!"),
+                        backgroundColor: Colors.green,
+                      ),
+                    );
+                    Navigator.of(context).pop();
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text("Ocorreu um erro durante o cadastro"),
+                        backgroundColor: Colors.red,
+                      ),
+                    );
                   }
                 }
               },

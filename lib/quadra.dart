@@ -1,9 +1,13 @@
-// class Quadra {
-//   final String descricao;
-//   final Map<int, bool> esportesDisponiveis;
-//   // {
-//   //   1: true,
-//   //   2: false,
-//   //   3: false,
-//   // }
-// }
+import 'package:app_quadras/esporte.dart';
+
+class Quadra {
+  final int id;
+  final String descricao;
+  final List<Esporte> esportesHabilitados;
+
+  Quadra({
+    required this.id,
+    required this.descricao,
+    required this.esportesHabilitados,
+  });
+}

@@ -34,6 +34,7 @@ class _TelaEsportesState extends State<TelaEsportes> {
           print("${e["descricao"]}");
           print("${e["numero_jogadores"]}");
           return Esporte(
+            id: e["id"],
             descricao: e["descricao"],
             numeroJogadores: e["numero_jogadores"],
           );
