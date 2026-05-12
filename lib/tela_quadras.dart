@@ -68,15 +68,21 @@ class _TelaQuadrasState extends State<TelaQuadras> {
             itemBuilder: (context, index) {
               return GestureDetector(
                 onTap: () {
-                  Navigator.of(context).push(
-                    MaterialPageRoute(
-                      builder: (context) {
-                        return CadastroQuadra(
-                          quadra: quadras[index],
-                        );
-                      },
-                    ),
-                  );
+                  Navigator.of(context)
+                      .push(
+                        MaterialPageRoute(
+                          builder: (context) {
+                            return CadastroQuadra(
+                              quadra: quadras[index],
+                            );
+                          },
+                        ),
+                      )
+                      .then(
+                        (value) {
+                          consultarQuadras();
+                        },
+                      );
                 },
                 child: Card(
                   elevation: 8,
